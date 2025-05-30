@@ -21,7 +21,7 @@ export function Inputzone({ setCarregando,apiURL }: InputzoneProps) {
     
     function enviarArquivos() {
         setCarregando(true); 
-        const apiUrl = "https://analistafidcs-parserpdf.up.railway.app/" + "/processar";
+        const apiUrl = "https://analistafidcs-parserpdf.up.railway.app/" + "processar";
         //const apiUrl = "http://localhost:8000" + "/processar"
         console.log(apiURL);
         const formData = new FormData();
