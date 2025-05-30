@@ -46,7 +46,7 @@ export default function ReportViewer() {
       </header>
 
       <div className="w-screen h-8/10  flex-1 scroll-hidden mx-auto p-6 pl-20 pr-20  gap-10 space-y-8 flex flex-row">
-        <Inputzone setCarregando={setCarregando}/>
+        <Inputzone setCarregando={setCarregando} apiURL={apiURL}/>
 
         <div className="bg-gray-50 flex-3/4 border-2 border-gray-200 rounded-lg h-192 flex flex-col items-center justify-center">
           {/*Report */}
