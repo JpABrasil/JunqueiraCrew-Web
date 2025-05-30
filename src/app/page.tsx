@@ -8,7 +8,6 @@ export default function ReportViewer() {
   const [reportTriggered, setReportTriggered] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [carregando, setCarregando] = useState(false);
-  const apiURL = process.env.NEXT_PUBLIC_API_URL ;
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     setSelectedFiles(files);
@@ -46,7 +45,7 @@ export default function ReportViewer() {
       </header>
 
       <div className="w-screen h-8/10  flex-1 scroll-hidden mx-auto p-6 pl-20 pr-20  gap-10 space-y-8 flex flex-row">
-        <Inputzone setCarregando={setCarregando} apiURL={apiURL}/>
+        <Inputzone setCarregando={setCarregando}/>
 
         <div className="bg-gray-50 flex-3/4 border-2 border-gray-200 rounded-lg h-192 flex flex-col items-center justify-center">
           {/*Report */}
