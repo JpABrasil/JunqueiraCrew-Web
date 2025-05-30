@@ -8,7 +8,7 @@ export default function ReportViewer() {
   const [reportTriggered, setReportTriggered] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [carregando, setCarregando] = useState(false);
-
+  const apiURL = process.env.NEXT_PUBLIC_API_URL ;
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     setSelectedFiles(files);

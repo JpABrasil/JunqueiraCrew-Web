@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # Expor a porta que o Next.js usa (default 3000)
-EXPOSE 3000
+EXPOSE 8080
 
 # Variável de ambiente padrão (pode ser sobrescrita no docker run)
 ENV NEXT_PUBLIC_API_URL=http://localhost:8000
