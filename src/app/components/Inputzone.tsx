@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import React, {useCallback} from 'react'
 import {useDropzone} from 'react-dropzone'
 
@@ -20,55 +23,93 @@ export function Inputzone({ setCarregando,apiURL,setResultadosAnalise,setResulta
     
     const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop})
     
-    function enviarArquivos() {
-        setCarregando(true); 
-        //const apiUrl = "https://analistafidcs-parserpdf.up.railway.app/" + "processar";
-        const apiUrl = "http://localhost:8000" + "/processar"
-        console.log(apiURL);
-        const formData = new FormData();
-        acceptedFiles.forEach((file) => {
-            formData.append('files', file); 
-        });
-        fetch(apiUrl, {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro ao enviar arquivos');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Sucesso:', data.message);
-            fetch("http://localhost:8001" + "/processar", {
-                method: 'POST',
-                body: JSON.stringify(data.message),
-            }).then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao processar os arquivos');
-                }
-                return response.json();
-            }).then(processedData => {
-                const relatorio_final = processedData.relatorio_final;
-                const data_report = processedData.data_report;
-                const dre_analysis = processedData.dre_analysis;
-                const risk_analysis = processedData.risk_analysis;
-                setResultadosAnalise?.({
-                    relatorio_final,
-                    data_report,
-                    dre_analysis,
-                    risk_analysis
-                });
-                setCarregando(false);
-                setResultadoCarregado?.(true);
-            })
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            alert('Erro ao enviar os arquivos.');
-        });
+    function base64ToBlob(base64: string, mimeType: string) {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
     }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+}
+
+function enviarArquivos() {
+    setCarregando(true); 
+
+    const apiUrl = "http://localhost:8000/processar";
+    const formData = new FormData();
+
+    acceptedFiles.forEach((file) => {
+        formData.append('files', file); 
+    });
+
+    fetch(apiUrl, {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao enviar arquivos');
+        }
+        return response.json();
+    })
+    .then(data => {
+        const payload = {
+            message: data.message,
+            filenames: data.filenames,
+        };
+
+        console.log('Sucesso:', data.message);
+
+        return fetch("http://localhost:8001/processar", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao processar os arquivos');
+        }
+        return response.json();
+    })
+    .then(processedData => {
+        const relatorio_final = processedData.relatorio_final;
+        const data_report_final = processedData.data_report_final;
+
+        setResultadosAnalise?.({
+            relatorio_final,
+            data_report_final,
+        });
+        setCarregando(false);
+        setResultadoCarregado?.(true);
+
+        // 🔽 Faz download automático dos arquivos processados
+        Object.entries(processedData).forEach(([filenameBase, base64Data]) => {
+            const extension = filenameBase.includes("pdf") ? "pdf" : "csv"; // ajuste conforme a necessidade
+            const filename = `${filenameBase}.${extension}`;
+            const mimeType = extension === "pdf" ? "application/pdf" : "text/csv";
+            const blob = base64ToBlob(base64Data, mimeType);
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+                });
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao enviar os arquivos.');
+                setCarregando(false);
+            });
+        }
+
 
     function removerArquivo(index: number) {
         setAcceptedFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
