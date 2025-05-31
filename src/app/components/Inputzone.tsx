@@ -1,13 +1,14 @@
-import { env } from 'process';
 import React, {useCallback} from 'react'
 import {useDropzone} from 'react-dropzone'
 
 interface InputzoneProps {
   setCarregando: React.Dispatch<React.SetStateAction<boolean>>;
   apiURL?: string;
+  setResultadosAnalise?: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
+  setResultadoCarregado?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export function Inputzone({ setCarregando,apiURL }: InputzoneProps) {
+export function Inputzone({ setCarregando,apiURL,setResultadosAnalise,setResultadoCarregado }: InputzoneProps) {
     const [acceptedFiles, setAcceptedFiles] = React.useState<File[]>([]);
     
     const onDrop = useCallback((acceptedFiles:File[]) => {
@@ -21,8 +22,8 @@ export function Inputzone({ setCarregando,apiURL }: InputzoneProps) {
     
     function enviarArquivos() {
         setCarregando(true); 
-        const apiUrl = "https://analistafidcs-parserpdf.up.railway.app/" + "processar";
-        //const apiUrl = "http://localhost:8000" + "/processar"
+        //const apiUrl = "https://analistafidcs-parserpdf.up.railway.app/" + "processar";
+        const apiUrl = "http://localhost:8000" + "/processar"
         console.log(apiURL);
         const formData = new FormData();
         acceptedFiles.forEach((file) => {
@@ -39,7 +40,29 @@ export function Inputzone({ setCarregando,apiURL }: InputzoneProps) {
             return response.json();
         })
         .then(data => {
-            setCarregando(false);
+            console.log('Sucesso:', data.message);
+            fetch("http://localhost:8001" + "/processar", {
+                method: 'POST',
+                body: JSON.stringify(data.message),
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao processar os arquivos');
+                }
+                return response.json();
+            }).then(processedData => {
+                const relatorio_final = processedData.relatorio_final;
+                const data_report = processedData.data_report;
+                const dre_analysis = processedData.dre_analysis;
+                const risk_analysis = processedData.risk_analysis;
+                setResultadosAnalise?.({
+                    relatorio_final,
+                    data_report,
+                    dre_analysis,
+                    risk_analysis
+                });
+                setCarregando(false);
+                setResultadoCarregado?.(true);
+            })
         })
         .catch(error => {
             console.error('Erro:', error);
